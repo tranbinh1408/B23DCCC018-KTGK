@@ -43,12 +43,11 @@
 		component: './TodoList',
 	},
 	{
-		path: '/Danhsachkhoahoc',
-		name: 'DanhSachKhoaHoc',
-		component: './Danhsachkhoahoc',
-		icon: 'OrderedListOutlined',
+		path: '/khoa-hoc',
+		name: 'KhoaHoc',
+		icon: 'BookOutlined',
+		component: './KhoaHoc',
 	},
-
 
 	// DANH MUC HE THONG
 	// {

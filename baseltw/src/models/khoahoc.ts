@@ -1,54 +1,119 @@
-import { useState } from 'react';
-import { KhoaHoc } from '@/services/KhoaHoc/typing';
-import { KhoaHocService } from '@/services/KhoaHoc';
+import { useState, useCallback } from 'react';
 import { message } from 'antd';
+import { 
+  getKhoaHoc, 
+  themKhoaHoc, 
+  capNhatKhoaHoc, 
+  xoaKhoaHoc, 
+  initKhoaHocData,
+  getKhoaHocById
+} from '@/services/KhoaHoc';
+import type { KhoaHoc, KhoaHocParams } from '@/services/KhoaHoc/typing.d';
 
 export default () => {
+  const [danhSachKhoaHoc, setDanhSachKhoaHoc] = useState<KhoaHoc[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [danhSach, setDanhSach] = useState<KhoaHoc.IRecord[]>([]);
-  const [record, setRecord] = useState<KhoaHoc.IRecord>();
-  const [visible, setVisible] = useState<boolean>(false);
-  const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(10);
-
-  const getData = () => {
+  const [currentKhoaHoc, setCurrentKhoaHoc] = useState<KhoaHoc | undefined>(undefined);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalType, setModalType] = useState<'them' | 'sua'>('them');
+  
+  // Khởi tạo dữ liệu mẫu
+  useCallback(() => {
+    initKhoaHocData();
+  }, []);
+  
+  // Lấy danh sách khóa học
+  const fetchDanhSachKhoaHoc = useCallback(async (params?: KhoaHocParams) => {
     setLoading(true);
     try {
-      const data = KhoaHocService.getAll();
-      setDanhSach(data);
+      const data = getKhoaHoc(params);
+      setDanhSachKhoaHoc(data);
     } catch (error) {
-      message.error('Có lỗi xảy ra khi tải dữ liệu');
+      message.error('Có lỗi xảy ra khi tải danh sách khóa học');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleEdit = (rec: KhoaHoc.IRecord) => {
-    setRecord(rec);
-    setVisible(true);
-  };
-
-  const deleteModel = async (_id: string, callback?: () => void) => {
+  }, []);
+  
+  // Mở modal thêm khóa học
+  const showThemKhoaHoc = useCallback(() => {
+    setCurrentKhoaHoc(undefined);
+    setModalType('them');
+    setModalVisible(true);
+  }, []);
+  
+  // Mở modal sửa khóa học
+  const showSuaKhoaHoc = useCallback((id: string) => {
+    const khoaHoc = getKhoaHocById(id);
+    setCurrentKhoaHoc(khoaHoc);
+    setModalType('sua');
+    setModalVisible(true);
+  }, []);
+  
+  // Đóng modal
+  const closeModal = useCallback(() => {
+    setModalVisible(false);
+  }, []);
+  
+  // Thêm khóa học mới
+  const handleThemKhoaHoc = useCallback(async (values: Omit<KhoaHoc, 'id'>) => {
     try {
-      KhoaHocService.delete(_id);
-      message.success('Xóa thành công');
-      if (callback) callback();
+      const result = themKhoaHoc(values);
+      if (result.success) {
+        message.success('Thêm khóa học thành công');
+        closeModal();
+        fetchDanhSachKhoaHoc();
+      } else {
+        message.error(result.message || 'Thêm khóa học thất bại');
+      }
     } catch (error) {
-      message.error('Có lỗi xảy ra');
+      message.error('Có lỗi xảy ra khi thêm khóa học');
     }
-  };
-
+  }, [closeModal, fetchDanhSachKhoaHoc]);
+  
+  // Cập nhật khóa học
+  const handleCapNhatKhoaHoc = useCallback(async (values: KhoaHoc) => {
+    try {
+      const result = capNhatKhoaHoc(values);
+      if (result.success) {
+        message.success('Cập nhật khóa học thành công');
+        closeModal();
+        fetchDanhSachKhoaHoc();
+      } else {
+        message.error(result.message || 'Cập nhật khóa học thất bại');
+      }
+    } catch (error) {
+      message.error('Có lỗi xảy ra khi cập nhật khóa học');
+    }
+  }, [closeModal, fetchDanhSachKhoaHoc]);
+  
+  // Xóa khóa học
+  const handleXoaKhoaHoc = useCallback(async (id: string) => {
+    try {
+      const result = xoaKhoaHoc(id);
+      if (result.success) {
+        message.success('Xóa khóa học thành công');
+        fetchDanhSachKhoaHoc();
+      } else {
+        message.error(result.message || 'Xóa khóa học thất bại');
+      }
+    } catch (error) {
+      message.error('Có lỗi xảy ra khi xóa khóa học');
+    }
+  }, [fetchDanhSachKhoaHoc]);
+  
   return {
+    danhSachKhoaHoc,
     loading,
-    danhSach,
-    record,
-    visible,
-    page,
-    limit,
-    setVisible,
-    setRecord,
-    getData,
-    handleEdit,
-    deleteModel
+    currentKhoaHoc,
+    modalVisible,
+    modalType,
+    fetchDanhSachKhoaHoc,
+    showThemKhoaHoc,
+    showSuaKhoaHoc,
+    closeModal,
+    handleThemKhoaHoc,
+    handleCapNhatKhoaHoc,
+    handleXoaKhoaHoc,
   };
-};
+}; 
