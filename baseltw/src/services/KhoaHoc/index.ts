@@ -3,16 +3,16 @@ import { KhoaHoc } from './typing';
 const STORAGE_KEY = 'KHOA_HOC_DATA';
 
 export const KhoaHocService = {
-  getAll: (): KhoaHoc.IRecord[] => {
+  getAll() {
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : [];
   },
 
-  create: (khoaHoc: Omit<KhoaHoc.IRecord, 'id' | 'createdAt'>) => {
-    const data = KhoaHocService.getAll();
+  create(khoaHoc: Omit<KhoaHoc.IRecord, '_id' | 'createdAt'>) {
+    const data = this.getAll();
     const newKhoaHoc: KhoaHoc.IRecord = {
       ...khoaHoc,
-      id: Math.random().toString(36).substr(2, 9),
+      _id: Math.random().toString(36).substr(2, 9),
       createdAt: new Date().toISOString()
     };
     
@@ -21,9 +21,9 @@ export const KhoaHocService = {
     return newKhoaHoc;
   },
 
-  update: (id: string, khoaHoc: Partial<KhoaHoc.IRecord>) => {
-    const data = KhoaHocService.getAll();
-    const index = data.findIndex(item => item.id === id);
+  update(_id: string, khoaHoc: Partial<KhoaHoc.IRecord>) {
+    const data = this.getAll();
+    const index = data.findIndex(item => item._id === _id);
     if (index !== -1) {
       data[index] = { ...data[index], ...khoaHoc };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -32,9 +32,9 @@ export const KhoaHocService = {
     return null;
   },
 
-  delete: (id: string) => {
-    const data = KhoaHocService.getAll();
-    const filtered = data.filter(item => item.id !== id);
+  delete(_id: string) {
+    const data = this.getAll();
+    const filtered = data.filter(item => item._id !== _id);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
   }
 };

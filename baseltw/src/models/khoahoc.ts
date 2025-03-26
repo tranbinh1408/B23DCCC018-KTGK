@@ -8,6 +8,8 @@ export default () => {
   const [danhSach, setDanhSach] = useState<KhoaHoc.IRecord[]>([]);
   const [record, setRecord] = useState<KhoaHoc.IRecord>();
   const [visible, setVisible] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
 
   const getData = () => {
     setLoading(true);
@@ -21,33 +23,16 @@ export default () => {
     }
   };
 
-  const createKhoaHoc = async (values: Omit<KhoaHoc.IRecord, 'id' | 'createdAt'>) => {
-    try {
-      KhoaHocService.create(values);
-      message.success('Thêm khóa học thành công');
-      getData();
-      setVisible(false);
-    } catch (error) {
-      message.error('Có lỗi xảy ra');
-    }
+  const handleEdit = (rec: KhoaHoc.IRecord) => {
+    setRecord(rec);
+    setVisible(true);
   };
 
-  const updateKhoaHoc = async (id: string, values: Partial<KhoaHoc.IRecord>) => {
+  const deleteModel = async (_id: string, callback?: () => void) => {
     try {
-      KhoaHocService.update(id, values);
-      message.success('Cập nhật thành công');
-      getData();
-      setVisible(false);
-    } catch (error) {
-      message.error('Có lỗi xảy ra');
-    }
-  };
-
-  const deleteKhoaHoc = async (id: string) => {
-    try {
-      KhoaHocService.delete(id);
+      KhoaHocService.delete(_id);
       message.success('Xóa thành công');
-      getData();
+      if (callback) callback();
     } catch (error) {
       message.error('Có lỗi xảy ra');
     }
@@ -58,11 +43,12 @@ export default () => {
     danhSach,
     record,
     visible,
+    page,
+    limit,
     setVisible,
     setRecord,
     getData,
-    createKhoaHoc,
-    updateKhoaHoc,
-    deleteKhoaHoc
+    handleEdit,
+    deleteModel
   };
 };
